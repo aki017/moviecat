@@ -106,9 +106,9 @@ while($i<=($long*10)-1)
         else
         {
             exit();
-            for ($red = 0; $red < 6; $red++) {
-                for ($green = 0; $green < 6; $green++) {
-                    for ($blue = 0; $blue < 6; $blue++) {
+            for (my $red = 0; $red < 6; $red++) {
+                for (my $green = 0; $green < 6; $green++) {
+                    for (my $blue = 0; $blue < 6; $blue++) {
                         printf("\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b\\",
                             16 + ($red * 36) + ($green * 6) + $blue,
                             ($red ? ($red * 40 + 55) : 0),
