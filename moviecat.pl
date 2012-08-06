@@ -103,9 +103,8 @@ while($i<=($long*10)-1)
         {
             $i += int($long*10/30);
         }
-        else
+        elsif($char eq "q")
         {
-            exit();
             for (my $red = 0; $red < 6; $red++) {
                 for (my $green = 0; $green < 6; $green++) {
                     for (my $blue = 0; $blue < 6; $blue++) {
@@ -118,6 +117,7 @@ while($i<=($long*10)-1)
                 }
             }
             print "\x1b[0m\n";
+            exit();
         };}
 }
 sub gett
