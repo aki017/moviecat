@@ -46,53 +46,22 @@ my $i =0;
 while($i<=($long*10)-1)
 {
     $i++;
+    # not negativ 
     $i = ($i >=0)?$i:0;
+    
     $tmpi = 0;
+
     while(0.1> Time::HiRes::tv_interval($start))
     {
         select undef, undef, undef, 0.01;
     }
     @{$start}[0] = Time::HiRes::tv_interval($start);
-    $im->file("/tmp/moviecat/$filename/$i.png");
 #    $sf[$i] = $im->getref();
 #    $loading->message("=== $i / ${long}0 ===")->set($i)->print;
 #}
 #for my $i (1..($long*10))
 #{
-    my @s = @{$im->getref()};#@{$sf[$i]};
-    my $sh = @s -1;
-    my $sw = @{$s[0]} -1;
-    for my $j(0..$sh){
-        my $l = "";
-        for my $k(0..$sw){
-            if($k == 0)
-            {
-                $l .=$s[$j][$k];
-            }
-            elsif($s[$j][$k] eq $s[$j][$k-1])
-            {
-                $l .= " ";
-            }else
-            {
-                $l .=$s[$j][$k];
-            }
-        }
-        $scr->at($j, 0)->puts($l);
-    }
-    my $status_l ="$i  ".(int($i/($long*10)*100))."%";
-    my $status_c = &gett($i, $long*10);
-    my $status_r ="($filename)";
-    my $status_all = $status_l . " "x (int( ($cw-1)/2 - length($status_c)/2 -length($status_l))).$status_c;
-    $status_all .= " "x( $cw - length($status_all) - length($status_r)).$status_r;
-    my $status ="\x1b[48;5;237m";
-    for my $k(0..$cw)
-    {
-        $status .= substr($status_all, $k, 1);
-        $status .="\x1b[48;5;247m" if($k/($cw-1)>$i/($long*10));
-    }
-    $scr->at($sh+1, 0)->puts($status);
-    @old = ();
-    foreach ( @s ){ push( @old,  [ @$_ ] ); }
+    render($i);
     if ($scr->key_pressed()) {
         my $char = $scr->getch();
         if ($char eq "kl")
@@ -102,6 +71,23 @@ while($i<=($long*10)-1)
         elsif ($char eq "kr")
         {
             $i += int($long*10/30);
+        }
+        elsif ($char eq " ")
+        {
+            while(($char = $scr->getch()) ne " ")
+            {
+                if ($char eq "kl")
+                {
+                    $i -= 1;
+                    render($i);
+                }
+                elsif ($char eq "kr")
+                {
+                    $i += 1;
+                    render($i);
+                }
+                ;
+            }
         }
         elsif($char eq "q")
         {
@@ -137,4 +123,43 @@ sub gett
         $dur = "".int($j/10/60).":".int($j/10%60);
     }
     return $now." / ".$dur;
+}
+sub render 
+{
+    my $i = shift;
+    $im->file("/tmp/moviecat/$filename/$i.png");
+    my @s = @{$im->getref()};#@{$sf[$i]};
+    my $sh = @s -1;
+    my $sw = @{$s[0]} -1;
+    for my $j(0..$sh){
+        my $l = "";
+        for my $k(0..$sw){
+            if($k == 0)
+            {
+                $l .=$s[$j][$k];
+            }
+            elsif($s[$j][$k] eq $s[$j][$k-1])
+            {
+                $l .= " ";
+            }else
+            {
+                $l .=$s[$j][$k];
+            }
+        }
+        $scr->at($j, 0)->puts($l);
+    }
+    my $status_l ="$i  ".(int($i/($long*10)*100))."%";
+    my $status_c = &gett($i, $long*10);
+    my $status_r ="($filename)";
+    my $status_all = $status_l . " "x (int( ($cw-1)/2 - length($status_c)/2 -length($status_l))).$status_c;
+    $status_all .= " "x( $cw - length($status_all) - length($status_r)).$status_r;
+    my $status ="\x1b[48;5;237m";
+    for my $k(0..$cw)
+    {
+        $status .= substr($status_all, $k, 1);
+        $status .="\x1b[48;5;247m" if($k/($cw-1)>$i/($long*10));
+    }
+    $scr->at($sh+1, 0)->puts($status);
+    @old = ();
+    foreach ( @s ){ push( @old,  [ @$_ ] ); }
 }
