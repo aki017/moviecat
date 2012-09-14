@@ -41,7 +41,7 @@ sub getfullref
     $gd->copyResized( $gdold,  0,  0,  0,  0,  $width,  $height,  $iw,  $ih );
     $gd->trueColorToPalette(0,256-24-16);
     ($iw, $ih) = $gd->getBounds();
-    warn $gd->colorsTotal();
+    #warn $gd->colorsTotal();
     my @array;
     $array[0][0]="";
     for my $index(0..216)

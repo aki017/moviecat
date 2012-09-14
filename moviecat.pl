@@ -74,35 +74,25 @@ while($i<=($long*10)-1)
         }
         elsif ($char eq " ")
         {
+                    fullrender($i);
             while(($char = $scr->getch()) ne " ")
             {
                 if ($char eq "kl")
                 {
                     $i -= 1;
-                    render($i);
+                    fullrender($i);
                 }
                 elsif ($char eq "kr")
                 {
                     $i += 1;
-                    render($i);
+                    fullrender($i);
                 }
-                ;
             }
+            resetcolor();
         }
         elsif($char eq "q")
         {
-            for (my $red = 0; $red < 6; $red++) {
-                for (my $green = 0; $green < 6; $green++) {
-                    for (my $blue = 0; $blue < 6; $blue++) {
-                        printf("\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b\\",
-                            16 + ($red * 36) + ($green * 6) + $blue,
-                            ($red ? ($red * 40 + 55) : 0),
-                            ($green ? ($green * 40 + 55) : 0),
-                            ($blue ? ($blue * 40 + 55) : 0));
-                    }
-                }
-            }
-            print "\x1b[0m\n";
+            resetcolor();
             exit();
         };}
 }
@@ -110,19 +100,15 @@ sub gett
 {
     my $i = shift;
     my $j= shift;
-    my $now = "";
-    my $dur = "";
+    my $format = "%2d:%02d / %2d:%02d";
     if($j<1000)
     {
-        $now = "".int($i/10).".".$i%10;
-        $dur = "".int($j/10).".".$j%10;
+        return sprintf($format, $i/10, $i%10, $j/10, $j%10); 
     }
     else
     {
-        $now = "".int($i/10/60).":".int($i/10%60);
-        $dur = "".int($j/10/60).":".int($j/10%60);
+        return sprintf($format, $i/10/60, $i/10%60, $j/10/60, $j/10%60); 
     }
-    return $now." / ".$dur;
 }
 sub render 
 {
@@ -148,7 +134,43 @@ sub render
         }
         $scr->at($j, 0)->puts($l);
     }
-    my $status_l ="$i  ".(int($i/($long*10)*100))."%";
+    my $status = &getStatus();
+    $scr->at($sh+1, 0)->puts($status);
+    @old = ();
+    foreach ( @s ){ push( @old,  [ @$_ ] ); }
+}
+sub fullrender 
+{
+    my $i = shift;
+    $im->file("/tmp/moviecat/$filename/$i.png");
+    my @s = @{$im->getfullref()};#@{$sf[$i]};
+    my $sh = @s -1;
+    my $sw = @{$s[0]} -1;
+    for my $j(0..$sh){
+        my $l = "";
+        for my $k(0..$sw){
+            if($k == 0)
+            {
+                $l .=$s[$j][$k];
+            }
+            elsif($s[$j][$k] eq $s[$j][$k-1])
+            {
+                $l .= " ";
+            }else
+            {
+                $l .=$s[$j][$k];
+            }
+        }
+        $scr->at($j, 0)->puts($l);
+    }
+    my $status = &getStatus();
+    $scr->at($sh+1, 0)->puts($status);
+    @old = ();
+    foreach ( @s ){ push( @old,  [ @$_ ] ); }
+}
+sub getStatus
+{
+    my $status_l ="[$i / ${long}0]  ".(int($i/($long*10)*100))."%";
     my $status_c = &gett($i, $long*10);
     my $status_r ="($filename)";
     my $status_all = $status_l . " "x (int( ($cw-1)/2 - length($status_c)/2 -length($status_l))).$status_c;
@@ -159,7 +181,22 @@ sub render
         $status .= substr($status_all, $k, 1);
         $status .="\x1b[48;5;247m" if($k/($cw-1)>$i/($long*10));
     }
-    $scr->at($sh+1, 0)->puts($status);
-    @old = ();
-    foreach ( @s ){ push( @old,  [ @$_ ] ); }
+    return $status;
+}
+sub resetcolor
+{
+    my $str = "";
+    for (my $red = 0; $red < 6; $red++) {
+        for (my $green = 0; $green < 6; $green++) {
+            for (my $blue = 0; $blue < 6; $blue++) {
+                $str .= sprintf("\x1b]4;%d;rgb:%2.2x/%2.2x/%2.2x\x1b\\",
+                    16 + ($red * 36) + ($green * 6) + $blue,
+                    ($red ? ($red * 40 + 55) : 0),
+                    ($green ? ($green * 40 + 55) : 0),
+                    ($blue ? ($blue * 40 + 55) : 0));
+            }
+        }
+    }
+    $str .= "\x1b[0m\n";
+    $scr->at(0, 0)->puts($str);
 }
